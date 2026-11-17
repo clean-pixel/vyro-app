@@ -8,6 +8,7 @@ export type Video = {
   thumbnail: string;
   sound: string;
   views: string;
+  duration: string;
   likes: number;
   liked: boolean;
   hashtags: string[];
@@ -23,15 +24,15 @@ export const creators = [
 export const videos: Video[] = [
   {
     id: 'v1', title: 'Golden hour, ganz für mich', description: 'Ein kleiner Moment zwischen Stadt und Sonnenuntergang. 🌇', creator: creators[0].name, handle: creators[0].handle, avatar: creators[0].avatar,
-    thumbnail: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=85', sound: 'Original Sound · Ava Stone', views: '128.4K', likes: 18400, liked: false, hashtags: ['goldenhour', 'citymood', 'vyro'],
+    thumbnail: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=85', sound: 'Original Sound · Ava Stone', views: '128.4K', duration: '0:18', likes: 18400, liked: false, hashtags: ['goldenhour', 'citymood', 'vyro'],
   },
   {
     id: 'v2', title: 'Eine Runde durch die Nacht', description: 'Neonlichter, leere Straßen und der Soundtrack für den Heimweg.', creator: creators[1].name, handle: creators[1].handle, avatar: creators[1].avatar,
-    thumbnail: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85', sound: 'Midnight City · M83', views: '86.2K', likes: 9600, liked: true, hashtags: ['nightdrive', 'citylights', 'mood'],
+    thumbnail: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85', sound: 'Midnight City · M83', views: '86.2K', duration: '0:24', likes: 9600, liked: true, hashtags: ['nightdrive', 'citylights', 'mood'],
   },
   {
     id: 'v3', title: 'Kleine Pause am Meer', description: 'Mehr davon, bitte. 🌊 Speichere dir diesen Ort für später.', creator: creators[2].name, handle: creators[2].handle, avatar: creators[2].avatar,
-    thumbnail: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=85', sound: 'Ocean Air · Maya Chen', views: '54.7K', likes: 7100, liked: false, hashtags: ['ocean', 'slowdays', 'travel'],
+    thumbnail: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=85', sound: 'Ocean Air · Maya Chen', views: '54.7K', duration: '0:31', likes: 7100, liked: false, hashtags: ['ocean', 'slowdays', 'travel'],
   },
 ];
 
