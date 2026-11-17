@@ -42,12 +42,20 @@ async function loadPublishedVideos(): Promise<Video[] | null> {
     const ids = videoRows.map((video) => video.id);
     const userIds = Array.from(new Set(videoRows.map((video) => video.user_id)));
 
-    const [{ data: profiles }, { data: likes }] = await Promise.all([
+    const [{ data: profiles }, { data: likes }, signedVideos] = await Promise.all([
       supabase
         .from("vyro_profiles")
         .select("id,username,display_name,avatar_url")
         .in("id", userIds),
       supabase.from("vyro_likes").select("video_id").in("video_id", ids),
+      Promise.all(
+        videoRows.map(async (row) => {
+          const { data, error: signedUrlError } = await supabase.storage
+            .from("vyro-videos")
+            .createSignedUrl(row.video_url, 60 * 60);
+          return { id: row.id, signedUrl: signedUrlError ? null : data?.signedUrl ?? null };
+        })
+      ),
     ]);
 
     const profileById = new Map(
@@ -57,29 +65,34 @@ async function loadPublishedVideos(): Promise<Video[] | null> {
     for (const like of likes ?? []) {
       likeCounts.set(like.video_id, (likeCounts.get(like.video_id) ?? 0) + 1);
     }
+    const signedUrlById = new Map(
+      signedVideos.map((video) => [video.id, video.signedUrl] as const)
+    );
 
-    return videoRows.map((row) => {
-      const profile = profileById.get(row.user_id);
-      const description = row.caption || "Neues Video auf VYRO";
-      return {
-        id: row.id,
-        title: description.length > 52 ? `${description.slice(0, 49)}…` : description,
-        description,
-        creator: profile?.display_name || profile?.username || "VYRO Creator",
-        handle: profile?.username || "creator",
-        avatar: profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-        thumbnail: row.thumbnail_url || "",
-        videoUrl: row.video_url,
-        sound: "Original Sound",
-        views: "Neu",
-        duration: formatDuration(row.duration_seconds),
-        likes: likeCounts.get(row.id) ?? 0,
-        liked: false,
-        hashtags: [],
-        creatorId: row.user_id,
-        isDatabaseVideo: true,
-      };
-    });
+    return videoRows
+      .filter((row) => Boolean(signedUrlById.get(row.id)))
+      .map((row) => {
+        const profile = profileById.get(row.user_id);
+        const description = row.caption || "Neues Video auf VYRO";
+        return {
+          id: row.id,
+          title: description.length > 52 ? `${description.slice(0, 49)}…` : description,
+          description,
+          creator: profile?.display_name || profile?.username || "VYRO Creator",
+          handle: profile?.username || "creator",
+          avatar: profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+          thumbnail: row.thumbnail_url || "",
+          videoUrl: signedUrlById.get(row.id) ?? undefined,
+          sound: "Original Sound",
+          views: "Neu",
+          duration: formatDuration(row.duration_seconds),
+          likes: likeCounts.get(row.id) ?? 0,
+          liked: false,
+          hashtags: [],
+          creatorId: row.user_id,
+          isDatabaseVideo: true,
+        };
+      });
   } catch {
     return null;
   }
