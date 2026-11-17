@@ -9,6 +9,7 @@ const navItems = [
   { href: '/notifications', label: 'Benachrichtigungen', icon: '🔔' },
   { href: '/profile', label: 'Profil', icon: '👤' },
   { href: '/admin', label: 'Admin', icon: '⚙️' },
+  { href: '/login', label: 'Anmelden', icon: '↗️' },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -16,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[#09090b] text-white">
       <div className="mx-auto flex max-w-[1600px] gap-5 px-4 py-5 lg:px-6">
         <aside className="hidden min-h-[calc(100vh-2rem)] w-72 shrink-0 rounded-[32px] border border-white/10 bg-[#111217]/90 p-5 shadow-glow lg:flex lg:flex-col">
-          <div className="mb-8 flex items-center gap-3">
+          <Link href="/" className="mb-8 flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xl font-black text-white">
               V
             </div>
@@ -24,7 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <p className="text-xs uppercase tracking-[0.28em] text-violet-300">VYRO</p>
               <p className="text-sm text-zinc-400">Social Studio</p>
             </div>
-          </div>
+          </Link>
 
           <nav className="space-y-2">
             {navItems.map((item) => (
@@ -48,15 +49,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main className="flex-1 pb-24 lg:pb-6">
           <div className="mb-6 flex items-center justify-between rounded-[28px] border border-white/10 bg-[#111217]/70 px-4 py-3 backdrop-blur-xl lg:hidden">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg font-black text-white">
                 V
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.24em] text-violet-300">VYRO</p>
               </div>
-            </div>
-            <button className="rounded-full bg-violet-500 px-3 py-1.5 text-sm font-medium text-white">Upload</button>
+            </Link>
+            <Link href="/login" className="rounded-full bg-violet-500 px-3 py-1.5 text-sm font-medium text-white">Anmelden</Link>
           </div>
 
           {children}
