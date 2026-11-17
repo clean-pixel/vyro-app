@@ -125,14 +125,10 @@ export function VideoUploader() {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from("vyro-videos")
-        .getPublicUrl(uploadedPath);
-
       const { error: insertError } = await supabase.from("vyro_videos").insert({
         user_id: authData.user.id,
         caption: caption.trim(),
-        video_url: urlData.publicUrl,
+        video_url: uploadedPath,
         duration_seconds: duration,
         visibility,
         status: "published",
