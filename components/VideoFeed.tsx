@@ -40,7 +40,7 @@ async function loadPublishedVideos(): Promise<Video[] | null> {
 
     const videoRows = rows as VideoRow[];
     const ids = videoRows.map((video) => video.id);
-    const userIds = [...new Set(videoRows.map((video) => video.user_id))];
+    const userIds = Array.from(new Set(videoRows.map((video) => video.user_id)));
 
     const [{ data: profiles }, { data: likes }] = await Promise.all([
       supabase
@@ -51,7 +51,7 @@ async function loadPublishedVideos(): Promise<Video[] | null> {
     ]);
 
     const profileById = new Map(
-      ((profiles ?? []) as ProfileRow[]).map((profile) => [profile.id, profile])
+      ((profiles ?? []) as ProfileRow[]).map((profile) => [profile.id, profile] as const)
     );
     const likeCounts = new Map<string, number>();
     for (const like of likes ?? []) {
