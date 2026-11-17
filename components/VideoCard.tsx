@@ -1,23 +1,210 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Video } from "@/data/mock";
+import { createClient } from "@/lib/supabase/client";
 
 export function VideoCard({ video }: { video: Video }) {
   const [liked, setLiked] = useState(video.liked);
   const [likes, setLikes] = useState(video.likes);
   const [saved, setSaved] = useState(false);
+  const [followed, setFollowed] = useState(false);
 
-  function toggleLike() {
-    setLiked((current) => !current);
-    setLikes((current) => current + (liked ? -1 : 1));
+  useEffect(() => {
+    if (!video.isDatabaseVideo) return;
+
+    let cancelled = false;
+
+    async function loadUserActions() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+
+        const [likeResult, bookmarkResult, followResult] = await Promise.all([
+          supabase
+            .from("vyro_likes")
+            .select("video_id")
+            .eq("video_id", video.id)
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          supabase
+            .from("vyro_bookmarks")
+            .select("video_id")
+            .eq("video_id", video.id)
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          video.creatorId
+            ? supabase
+                .from("vyro_follows")
+                .select("following_id")
+                .eq("follower_id", user.id)
+                .eq("following_id", video.creatorId)
+                .maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+        ]);
+
+        if (cancelled) return;
+        setLiked(Boolean(likeResult.data));
+        setSaved(Boolean(bookmarkResult.data));
+        setFollowed(Boolean(followResult.data));
+      } catch {
+        // The feed stays usable even when the session is not available.
+      }
+    }
+
+    void loadUserActions();
+    return () => {
+      cancelled = true;
+    };
+  }, [video.id, video.isDatabaseVideo, video.creatorId]);
+
+  async function getAuthContext() {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.assign("/login");
+        return null;
+      }
+      return { supabase, user };
+    } catch {
+      window.location.assign("/login");
+      return null;
+    }
+  }
+
+  async function toggleLike() {
+    if (!video.isDatabaseVideo) {
+      setLiked((current) => !current);
+      setLikes((current) => Math.max(0, current + (liked ? -1 : 1)));
+      return;
+    }
+
+    const context = await getAuthContext();
+    if (!context) return;
+
+    const { data: existing, error: lookupError } = await context.supabase
+      .from("vyro_likes")
+      .select("video_id")
+      .eq("video_id", video.id)
+      .eq("user_id", context.user.id)
+      .maybeSingle();
+
+    if (lookupError) return;
+
+    if (existing) {
+      const { error } = await context.supabase
+        .from("vyro_likes")
+        .delete()
+        .eq("video_id", video.id)
+        .eq("user_id", context.user.id);
+
+      if (!error) {
+        setLiked(false);
+        setLikes((current) => Math.max(0, current - 1));
+      }
+    } else {
+      const { error } = await context.supabase.from("vyro_likes").insert({
+        video_id: video.id,
+        user_id: context.user.id,
+      });
+
+      if (!error) {
+        setLiked(true);
+        setLikes((current) => current + 1);
+      }
+    }
+  }
+
+  async function toggleSaved() {
+    if (!video.isDatabaseVideo) {
+      setSaved((current) => !current);
+      return;
+    }
+
+    const context = await getAuthContext();
+    if (!context) return;
+
+    const { data: existing, error: lookupError } = await context.supabase
+      .from("vyro_bookmarks")
+      .select("video_id")
+      .eq("video_id", video.id)
+      .eq("user_id", context.user.id)
+      .maybeSingle();
+
+    if (lookupError) return;
+
+    if (existing) {
+      const { error } = await context.supabase
+        .from("vyro_bookmarks")
+        .delete()
+        .eq("video_id", video.id)
+        .eq("user_id", context.user.id);
+
+      if (!error) setSaved(false);
+    } else {
+      const { error } = await context.supabase.from("vyro_bookmarks").insert({
+        video_id: video.id,
+        user_id: context.user.id,
+      });
+
+      if (!error) setSaved(true);
+    }
+  }
+
+  async function toggleFollow() {
+    if (!video.isDatabaseVideo || !video.creatorId) {
+      setFollowed((current) => !current);
+      return;
+    }
+
+    const context = await getAuthContext();
+    if (!context || context.user.id === video.creatorId) return;
+
+    const { data: existing, error: lookupError } = await context.supabase
+      .from("vyro_follows")
+      .select("following_id")
+      .eq("follower_id", context.user.id)
+      .eq("following_id", video.creatorId)
+      .maybeSingle();
+
+    if (lookupError) return;
+
+    if (existing) {
+      const { error } = await context.supabase
+        .from("vyro_follows")
+        .delete()
+        .eq("follower_id", context.user.id)
+        .eq("following_id", video.creatorId);
+
+      if (!error) setFollowed(false);
+    } else {
+      const { error } = await context.supabase.from("vyro_follows").insert({
+        follower_id: context.user.id,
+        following_id: video.creatorId,
+      });
+
+      if (!error) setFollowed(true);
+    }
   }
 
   return (
     <article className="mx-auto w-full max-w-[520px] overflow-hidden rounded-[28px] border border-white/10 bg-[#111217] shadow-glow">
       <div className="relative aspect-[9/16] max-h-[76vh] min-h-[440px] bg-black sm:min-h-[520px]">
-        <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover" loading="lazy" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/10 to-black/25" />
+        {video.videoUrl ? (
+          <video
+            src={video.videoUrl}
+            poster={video.thumbnail || undefined}
+            controls
+            playsInline
+            preload="metadata"
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover" loading="lazy" />
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/10 to-black/25" />
 
         <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-3 sm:p-4">
           <span className="max-w-[70%] truncate rounded-full border border-white/15 bg-black/35 px-3 py-1.5 text-xs text-white backdrop-blur-md">
@@ -39,15 +226,9 @@ export function VideoCard({ video }: { video: Video }) {
               <button
                 type="button"
                 className="rounded-full border border-violet-300/50 bg-violet-500/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-500/40"
-                title="Folgen wird nach dem Login aktiviert"
-                onClick={(event) => {
-                  const button = event.currentTarget;
-                  const followed = button.dataset.followed === "true";
-                  button.dataset.followed = String(!followed);
-                  button.textContent = followed ? "Folgen" : "Gefolgt";
-                }}
+                onClick={toggleFollow}
               >
-                Folgen
+                {followed ? "Gefolgt" : "Folgen"}
               </button>
             </div>
 
@@ -79,7 +260,7 @@ export function VideoCard({ video }: { video: Video }) {
             <div className="flex flex-col items-center gap-1">
               <button
                 type="button"
-                onClick={() => setSaved((current) => !current)}
+                onClick={toggleSaved}
                 aria-label={saved ? "Video nicht mehr merken" : "Video merken"}
                 aria-pressed={saved}
                 className={`flex h-12 w-12 items-center justify-center rounded-full text-xl text-white backdrop-blur-xl transition sm:h-14 sm:w-14 ${saved ? "bg-violet-500" : "bg-white/15 hover:bg-white/25"}`}
