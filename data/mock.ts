@@ -12,6 +12,9 @@ export type Video = {
   likes: number;
   liked: boolean;
   hashtags: string[];
+  videoUrl?: string;
+  creatorId?: string;
+  isDatabaseVideo?: boolean;
 };
 
 export const creators = [
