@@ -1,85 +1,63 @@
-"use client";
+export type Video = {
+  id: string;
+  title: string;
+  description: string;
+  creator: string;
+  handle: string;
+  avatar: string;
+  thumbnail: string;
+  sound: string;
+  views: string;
+  likes: number;
+  liked: boolean;
+  hashtags: string[];
+};
 
-import { useState } from 'react';
-import type { Video } from '@/data/mock';
+export const creators = [
+  { id: 'ava', name: 'Ava Stone', handle: 'avastone', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80' },
+  { id: 'leo', name: 'Leo Park', handle: 'leopark', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' },
+  { id: 'maya', name: 'Maya Chen', handle: 'mayachen', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80' },
+  { id: 'noah', name: 'Noah Reyes', handle: 'noahreyes', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80' },
+];
 
-export function VideoCard({ video }: { video: Video }) {
-  const [liked, setLiked] = useState(video.liked);
-  const [likes, setLikes] = useState(video.likes);
+export const videos: Video[] = [
+  {
+    id: 'v1', title: 'Golden hour, ganz für mich', description: 'Ein kleiner Moment zwischen Stadt und Sonnenuntergang. 🌇', creator: creators[0].name, handle: creators[0].handle, avatar: creators[0].avatar,
+    thumbnail: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=85', sound: 'Original Sound · Ava Stone', views: '128.4K', likes: 18400, liked: false, hashtags: ['goldenhour', 'citymood', 'vyro'],
+  },
+  {
+    id: 'v2', title: 'Eine Runde durch die Nacht', description: 'Neonlichter, leere Straßen und der Soundtrack für den Heimweg.', creator: creators[1].name, handle: creators[1].handle, avatar: creators[1].avatar,
+    thumbnail: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85', sound: 'Midnight City · M83', views: '86.2K', likes: 9600, liked: true, hashtags: ['nightdrive', 'citylights', 'mood'],
+  },
+  {
+    id: 'v3', title: 'Kleine Pause am Meer', description: 'Mehr davon, bitte. 🌊 Speichere dir diesen Ort für später.', creator: creators[2].name, handle: creators[2].handle, avatar: creators[2].avatar,
+    thumbnail: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=85', sound: 'Ocean Air · Maya Chen', views: '54.7K', likes: 7100, liked: false, hashtags: ['ocean', 'slowdays', 'travel'],
+  },
+];
 
-  const handleLike = () => {
-    setLiked((value) => !value);
-    setLikes((value) => (liked ? value - 1 : value + 1));
-  };
+export const trendingTags = ['nightmood', 'creatorlife', 'streetstyle', 'travelgram', 'vyro'];
 
-  return (
-    <article className="overflow-hidden rounded-[32px] border border-white/10 bg-[#111217] shadow-glow">
-      <div className="relative aspect-[9/16] max-h-[82vh] min-h-[560px] bg-black">
-        <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
+export const messages = [
+  { id: 'm1', name: 'Ava Stone', avatar: creators[0].avatar, preview: 'Das Video ist richtig schön geworden!', time: '2 Min.' },
+  { id: 'm2', name: 'Leo Park', avatar: creators[1].avatar, preview: 'Schick mir den Sound mal ✨', time: '1 Std.' },
+  { id: 'm3', name: 'Maya Chen', avatar: creators[2].avatar, preview: 'Danke fürs Folgen!', time: 'Gestern' },
+];
 
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-          <div className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white backdrop-blur-md">
-            {video.sound}
-          </div>
-          <div className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white backdrop-blur-md">
-            {video.views} Aufrufe
-          </div>
-        </div>
+export const notifications = [
+  { id: 'n1', icon: '♥', title: 'Neues Like', description: 'Ava Stone gefällt dein Video „Sunset Session“.', time: 'vor 3 Min.' },
+  { id: 'n2', icon: '+', title: 'Neuer Follower', description: 'Leo Park folgt dir jetzt.', time: 'vor 18 Min.' },
+  { id: 'n3', icon: '💬', title: 'Neuer Kommentar', description: 'Maya Chen: „Dieser Vibe! ✨“', time: 'vor 1 Std.' },
+];
 
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 md:p-5">
-          <div className="max-w-[77%]">
-            <div className="mb-3 flex items-center gap-3">
-              <img src={video.avatar} alt={video.creator} className="h-12 w-12 rounded-full border border-white/20 object-cover" />
-              <div>
-                <p className="font-medium text-white">{video.creator}</p>
-                <p className="text-xs text-zinc-300">@{video.handle}</p>
-              </div>
-            </div>
-            <h2 className="text-xl font-semibold text-white md:text-2xl">{video.title}</h2>
-            <p className="mt-2 text-sm text-zinc-200">{video.description}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {video.hashtags.map((tag) => (
-                <span key={tag} className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-violet-200">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
+export const adminStats = [
+  { label: 'Nutzer gesamt', value: '24.8K', delta: '+12.4%' },
+  { label: 'Videos', value: '8,420', delta: '+8.2%' },
+  { label: 'Likes', value: '1.2M', delta: '+16.8%' },
+  { label: 'Meldungen offen', value: '18', delta: 'Prüfung nötig' },
+];
 
-          <div className="flex flex-col items-center gap-3">
-            <button
-              onClick={handleLike}
-              className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl backdrop-blur-xl transition ${liked ? 'bg-violet-500 text-white' : 'bg-white/10 text-white hover:bg-white/15'}`}
-              aria-label="Video mögen"
-            >
-              {liked ? '♥' : '♡'}
-            </button>
-            <div className="text-center text-sm text-white">{likes}</div>
-            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-2xl backdrop-blur-xl transition hover:bg-white/15">
-              💬
-            </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-2xl backdrop-blur-xl transition hover:bg-white/15">
-              🔁
-            </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-2xl backdrop-blur-xl transition hover:bg-white/15">
-              🔖
-            </button>
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-export function VideoFeed() {
-  const { videos } = require('@/data/mock');
-
-  return (
-    <div className="space-y-5">
-      {videos.map((video: Video) => (
-        <VideoCard key={video.id} video={video} />
-      ))}
-    </div>
-  );
-}
+export const recentActivity = [
+  { id: 'a1', title: 'Video gemeldet', meta: 'Nutzer @sample · vor 8 Min.', status: 'Offen' },
+  { id: 'a2', title: 'Kommentar geprüft', meta: 'Moderation · vor 21 Min.', status: 'Erledigt' },
+  { id: 'a3', title: 'Neuer Creator', meta: '@newcreator · vor 46 Min.', status: 'Info' },
+];
